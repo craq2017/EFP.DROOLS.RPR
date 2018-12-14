@@ -1,0 +1,227 @@
+package ru.mos.efp.efp.drools.rpr;
+
+rule "Check XML"
+	when
+		$app : XmlApplication( xml == null || xml==""  )
+		$error : Errors( )
+	then
+		$error.addError("INTERNAL_ERRORS", new Error("XML_IS_NULL", "Xml is null or empty")); 
+end
+
+rule "Init XML Service"
+    when
+        $app: XmlApplication(xml!=null && xml!="")
+    then
+        insert(new XmlService($app.getXml()));
+        insert(new XmlApplicationOk());
+end
+
+rule "Declarant or Trustee"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+        eval($xml.xpathNumber("count(//RprNewRequest/Declarant)") == 0 && 
+            $xml.xpathNumber("count(//RprNewRequest/Trustee)") == 0)
+        $error : Errors( )
+    then 
+        $error.addError("DECLARANT_TRUSTEE_ERRORS", new Error("DECLARANT_AND_TRUSTEE_ARE_NULL", "Declarant and Trustee are null or empty")); 
+end
+
+rule "41 Sts serie null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//Car/ForeignVehicleRegistrationCertificate)") == 0 &&
+		    $xml.xpathNumber("count(//Car/VehicleRegistrationCertificate/DocSerie)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("STS_ERRORS", new Error("STS_SERIE_IS_NULL", "Sts serie is null or empty")); 
+end
+
+rule "41 Sts Serie FLK"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//Car/ForeignVehicleRegistrationCertificate)") == 0 &&
+	        $xml.xpathNumber("count(//Car/VehicleRegistrationCertificate/DocSerie)") > 0 &&
+	        this not matches "^[0-9]{4}$" && 
+	        this not matches "^[0-9]{2}[АВЕКМНОРСТУX]{2}$") 
+	    from $xml.xpathString("//Car/VehicleRegistrationCertificate/DocSerie")
+		
+		$error : Errors( )
+	then
+    	$error.addError("STS_ERRORS", new Error("STS_SERIE_INVALID_FORMAT", "Sts serie format is wrong")); 
+end
+
+rule "42 Sts number null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//Car/ForeignVehicleRegistrationCertificate)") == 0 &&
+		    $xml.xpathNumber("count(//Car/VehicleRegistrationCertificate/DocNumber)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("STS_ERRORS", new Error("STS_NUMBER_IS_NULL", "Sts number is null or empty")); 
+end
+
+rule "42 Sts number FLK"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//Car/ForeignVehicleRegistrationCertificate)") == 0 &&
+	        $xml.xpathNumber("count(//Car/VehicleRegistrationCertificate/DocNumber)") > 0 &&
+	        this not matches "^[0-9]{6}$") from $xml.xpathString("//Car/VehicleRegistrationCertificate/DocNumber")
+		$error : Errors( )
+	then
+    	$error.addError("STS_ERRORS", new Error("STS_NUMBER_INVALID_FORMAT", "Sts number format is wrong")); 
+end
+
+rule "8 Declarant LastName null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//RprNewRequest/Declarant)") != 0 &&
+		    $xml.xpathNumber("count(//RprNewRequest/Declarant/LastName)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("DECLARANT_ERRORS", new Error("DECLARANT_LASTNAME_IS_NULL", "Declarant LastName is null or empty")); 
+end
+
+rule "8 Trustee LastName null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//RprNewRequest/Trustee)") != 0 &&
+		    $xml.xpathNumber("count(//RprNewRequest/Trustee/LastName)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("TRUSTEE_ERRORS", new Error("TRUSTEE_LASTNAME_IS_NULL", "Trustee LastName is null or empty")); 
+end
+
+rule "8 Declarant LastName Restrict"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//RprNewRequest/Declarant)") != 0 &&
+	        $xml.xpathNumber("count(//RprNewRequest/Declarant/LastName)") > 0 &&
+	        this not matches "^.{1,50}$") from $xml.xpathString("//RprNewRequest/Declarant/LastName")
+		$error : Errors( )
+	then
+    	$error.addError("DECLARANT_ERRORS", new Error("DECLARANT_LASTNAME_INVALID_FORMAT", "Declarant LastName is too long")); 
+end
+
+rule "8 Trustee LastName Restrict"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//RprNewRequest/Trustee)") != 0 &&
+	        $xml.xpathNumber("count(//RprNewRequest/Trustee/LastName)") > 0 &&
+	        this not matches "^.{1,50}$") from $xml.xpathString("//RprNewRequest/Trustee/LastName")
+		$error : Errors( )
+	then
+    	$error.addError("TRUSTEE_ERRORS", new Error("TRUSTEE_LASTNAME_INVALID_FORMAT", "Trustee LastName is too long")); 
+end
+
+rule "9 Declarant FirstName null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//RprNewRequest/Declarant)") != 0 &&
+		    $xml.xpathNumber("count(//RprNewRequest/Declarant/FirstName)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("DECLARANT_ERRORS", new Error("DECLARANT_FIRSTNAME_IS_NULL", "Declarant FirstName is null or empty")); 
+end
+
+rule "9 Trustee FirstName null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//RprNewRequest/Trustee)") != 0 &&
+		    $xml.xpathNumber("count(//RprNewRequest/Trustee/FirstName)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("TRUSTEE_ERRORS", new Error("Trustee_FIRSTNAME_IS_NULL", "Trustee FirstName is null or empty")); 
+end
+
+rule "9 Declarant FirstName Restrict"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//RprNewRequest/Declarant)") != 0 &&
+	        $xml.xpathNumber("count(//RprNewRequest/Declarant/FirstName)") > 0 &&
+	        this not matches "^.{1,50}$") from $xml.xpathString("//RprNewRequest/Declarant/FirstName")
+		$error : Errors( )
+	then
+    	$error.addError("DECLARANT_ERRORS", new Error("DECLARANT_FIRSTNAME_INVALID_FORMAT", "Declarant FirstName is too long")); 
+end
+
+rule "8 Trustee FirstName Restrict"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//RprNewRequest/Trustee)") != 0 &&
+	        $xml.xpathNumber("count(//RprNewRequest/Trustee/FirstName)") > 0 &&
+	        this not matches "^.{1,50}$") from $xml.xpathString("//RprNewRequest/Trustee/FirstName")
+		$error : Errors( )
+	then
+    	$error.addError("TRUSTEE_ERRORS", new Error("TRUSTEE_FIRSTNAME_INVALID_FORMAT", "Trustee FirstName is too long")); 
+end
+
+rule "10 Declarant MiddleName Restrict"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//RprNewRequest/Declarant)") != 0 &&
+	        $xml.xpathNumber("count(//RprNewRequest/Declarant/MiddleName)") > 0 &&
+	        this not matches "^.{1,50}$") from $xml.xpathString("//RprNewRequest/Declarant/MiddleName")
+		$error : Errors( )
+	then
+    	$error.addError("DECLARANT_ERRORS", new Error("DECLARANT_MIDDLENAME_INVALID_FORMAT", "Declarant MiddleName is too long")); 
+end
+
+rule "8 Trustee MiddleName Restrict"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( )
+	    $trCount: String($xml.xpathNumber("count(//RprNewRequest/Trustee)") != 0 &&
+	        $xml.xpathNumber("count(//RprNewRequest/Trustee/MiddleName)") > 0 &&
+	        this not matches "^.{1,50}$") from $xml.xpathString("//RprNewRequest/Trustee/MiddleName")
+		$error : Errors( )
+	then
+    	$error.addError("TRUSTEE_ERRORS", new Error("TRUSTEE_MIDDLENAME_INVALID_FORMAT", "Trustee MiddleName is too long")); 
+end
+
+rule "39 Plate null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//Car/ForeignVehicleRegistrationCertificate)") == 0 &&
+		    $xml.xpathNumber("count(//Car/VehicleNumber)") == 0)
+		$error : Errors( )
+    then
+        $error.addError("PLATE_ERRORS", new Error("PLATE_IS_NULL", "Plate is null or empty")); 
+end
+
+rule "39 Plate FLK"
+	when
+	    XmlApplicationOk( )
+	    $xml : XmlService( ) 
+	    $trCount: String($xml.xpathNumber("count(//Car/ForeignVehicleRegistrationCertificate)") == 0 &&
+	        $xml.xpathNumber("count(//Car/VehicleNumber)") > 0 &&
+	        this not matches "^[АВЕКМНОРСТУX]{1}[0-9]{3}[АВЕКМНОРСТУX]{2}[0-9]{2,3}$") 
+	    from $xml.xpathString("//Car/VehicleNumber")
+		$error : Errors( )
+	then
+    	$error.addError("PLATE_ERRORS", new Error("PLATE_INVALID_FORMAT", "Plate format is wrong")); 
+end
+
+rule "SSOID null"
+    when
+        XmlApplicationOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//Service/SSOID)") == 0 || $xml.xpathString("//Service/SSOID") == "")
+		$error : Errors( )
+    then
+        $error.addError("SERVICEINFO_ERRORS", new Error("SSOID_IS_NULL", "SSOID is null or empty")); 
+end

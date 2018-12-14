@@ -1,0 +1,56 @@
+package ru.mos.efp.efp.drools.rpr;
+
+function int checkStatus(int status) {
+    Integer[] statuses = {1,2,3,4,5,6,7,8,9,10,11,12,21,22,23,24,25,26,1000,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1015,1020,1030,1040,1041,1043,1045,1046,1047,1048,1049,1050,1051,1052,1053,1054,1055,1056,1057,1058,1059,1060,1061,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1072,1073,1074,1075,1076,1077,1078,1080,1085,1086,1088,1090,1095,1100,1110,1120,1121,1130,1140,1200,1210,1211,1212,1213,1214,6401,6402,6403,6404,6405,6406,6407,6408,6409,6410,6411,6412,6413,6414,6415,6416,6417,6418,6419,6420,7700,7701,7702,7703,7704,7705,7706,7707,7708,7709,7710,8010,8011,9010,9020,9030,9040,10671,10672,10901,26201,26202,26203,26204,26205,26206,77041,77042,77051,77052,77053,77054,77055,77056,77061,77062,77064,101040,101099,102099,103030,103098,103099,103103};
+    java.util.List<Integer> list = java.util.Arrays.asList(statuses);
+    return list.indexOf(status);
+}
+
+rule "Check status XML"
+	when
+		$app : XmlStatus( xml == null || xml==""  )
+		$error : Errors( )
+	then
+		$error.addError("INTERNAL_ERRORS", new Error("XML_IS_NULL", "Xml is null or empty")); 
+end
+
+rule "Init status XML Service"
+    when
+        $app: XmlStatus(xml!=null && xml!="")
+    then
+        insert(new XmlService($app.getXml()));
+        insert(new XmlStatusOk());
+end
+
+rule "Status servicenumber null"
+    when
+        XmlStatusOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//StatusData/ServiceNumber)") == 0 || $xml.xpathString("//StatusData/ServiceNumber") == "")
+		$error : Errors( )
+    then
+        $error.addError("SERVICEINFO_ERRORS", new Error("SERVICENUMBER_IS_NULL", "Service number is null or empty")); 
+end
+
+rule "Status code null"
+    when
+        XmlStatusOk( )
+        $xml : XmlService( )
+		eval($xml.xpathNumber("count(//StatusData/StatusCode)") == 0 || $xml.xpathString("//StatusData/StatusCode") == "")
+		$error : Errors( )
+    then
+        $error.addError("SERVICEINFO_ERRORS", new Error("STATUSCODE_IS_NULL", "Status code is null or empty")); 
+end
+
+rule "Status code range"
+    when
+        XmlStatusOk( )
+        $xml : XmlService( )
+		eval(checkStatus($xml.xpathNumber("//StatusData/StatusCode")) == -1)
+		$error : Errors( )
+    then
+        $error.addError("SERVICEINFO_ERRORS", new Error("STATUSCODE_IS_WRONG", "Status code is not contained in accepted range")); 
+end
+
+
+

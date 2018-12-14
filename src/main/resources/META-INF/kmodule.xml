@@ -1,0 +1,5 @@
+<kmodule xmlns="http://jboss.org/kie/6.0.0/kmodule" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <kbase name="kbase1" default="false" eventProcessingMode="stream" equalsBehavior="identity" packages="ru.mos.efp.efp.drools.rpr">
+    <ksession name="ksession1" type="stateless" default="false" clockType="realtime"/>
+  </kbase>
+</kmodule>
