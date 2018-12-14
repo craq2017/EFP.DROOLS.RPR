@@ -5,23 +5,13 @@
   <groupId>ru.mos.efp</groupId>
   <artifactId>EFP.DROOLS.RPR</artifactId>
   <version>1.6.16</version>
-  <packaging>kjar</packaging>
   <name>EFP.DROOLS.RPR</name>
+  <description>EFP Drools RPR Application</description>
   <repositories>
     <repository>
       <id>guvnor-m2-repo</id>
       <name>Guvnor M2 Repo</name>
-      <url>http://pflk-wb-1.efp:8080/drools-wb/maven2/</url>
+      <url>http://localhost:8080/decision-central/maven2/</url>
     </repository>
   </repositories>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.kie</groupId>
-        <artifactId>kie-maven-plugin</artifactId>
-        <version>6.5.0.Final</version>
-        <extensions>true</extensions>
-      </plugin>
-    </plugins>
-  </build>
 </project>
